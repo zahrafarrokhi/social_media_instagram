@@ -1,0 +1,31 @@
+#make user***
+python manage.py createsuperuser
+#get user****
+python manage.py shell
+from django.contrib.auth.models import User
+u1=User.objects.get(username='zahra')
+u1
+<User: zahra>
+#post***
+# point=>post (has fk for user) ,create post you need instance of user (user=u1)
+from posts.models import Post
+for i in range(1,5):
+	Post.objects.create(user=u1,body=("django_framework " + str(i)),slug=("hello_" + str(i)))
+
+#out 
+<Post: zahra - django_framework 1>
+<Post: zahra - django_framework 2>
+<Post: zahra - django_framework 3>
+<Post: zahra - django_framework 4>
+
+**
+--Post.objects.all()
+--p1=Post.objects.first()
+--p5=Post.objects.last()
+**
+--delete()
+p5.delets()
+**
+--update
+p4=Post(user=u1,body="python",slug="python_p")
+p4.save()

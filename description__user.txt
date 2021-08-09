@@ -1,0 +1,92 @@
+**Customizing authentication in Django
+https://docs.djangoproject.com/en/3.2/topics/auth/customizing/
+**
+https://docs.djangoproject.com/en/3.2/topics/auth/customizing/#extending-the-existing-user-model
+1-)Extending the existing User model(this project)
+https://docs.djangoproject.com/en/3.2/topics/auth/customizing/#substituting-a-custom-user-model
+2)substituting-a-custom-user-model
+
+**
+Extending the existing User model(this project)
+1-Profile OneToOne User(models.py)
+**
+2-ProfileInline(admin.py)
+class ProfileInline(admin.StackedInline):
+	model = Profile
+
+class UserAdmin(admin.ModelAdmin):
+	inlines = (ProfileInline,)
+
+admin.site.unregister(User)
+admin.site.register(Profile)
+admin.site.register(User, UserAdmin)
+**
+***** cretae profile when user signup
+python manage.py shell
+from user.models import Profile
+Profile.objects.all()
+<QuerySet []> => Profile is empty => solution: in views.py(function or classbase) for register or signal
+
+solution:
+1- def user_register(request):
+function******
+def user_register(request):
+	if request.method == 'POST':
+		form = UserRegistrationForm(request.POST)
+		if form.is_valid():
+			cd = form.cleaned_data
+			user = User.objects.create_user(cd['username'], cd['email'], cd['password'])
+			# make profile for user or use signal
+			# p1 =Profile(user=user)
+			# p1.save()
+			login(request, user)
+			messages.success(request, 'you registered successfully', 'success')
+			return redirect('posts:all_posts')
+	else:
+		form = UserRegistrationForm()
+	return render(request, 'user/register.html', {'form':form})
+classbase***
+class SignUpView(CreateView):
+    template_name = 'user/register.html'
+    form_class = UserRegistrationForm
+
+    # success_url = reverse_lazy('user:login')
+
+    def get_success_url(self):
+        messages.success(self.request, 'you signup in successfully', 'success')
+        return reverse_lazy('user:login')
+
+    # make profile for user or use signal
+    def form_valid(self, form):
+        user = form.save(commit=False)
+        user.is_active = False
+        user.save()
+        # make profile for user or use signal
+        Profile.objects.create(user=user)
+        login(self.request, user)
+        return super().form_valid(form)
+
+
+
+2-signal
+from django.db.models.signals import post_save
+(models.py)
+def save_profile(sender, **kwargs):
+	if kwargs['created']:
+		p1 = Profile(user=kwargs['instance'])
+		p1.save()
+
+post_save.connect(save_profile, sender=User)
+
+test => signup new user and check
+Profile.objects.all()
+<QuerySet [<Profile: sahar>]>
+from django.contrib.auth.models import User
+sahar = User.objects.get(username='sahar')
+sahar.profile.age = 28
+sahar.profile.save()
+sahar.profile.age
+28
+*******************
+User OnetoOne Profile => sahar.profile.age
+if User oneToMany Profile => sahar.profile_set.age(or related_name)

@@ -1,0 +1,44 @@
+install redis on windows
+Sepp 1: Go to https://github.com/microsoftarchive/redis/releases to Download .zip or .msi file.
+Step 2: Extract The ZIP File
+Step 3: Move The Redis Folder To C Drive (Optional)   cd c:\redis
+Step 4 :Open the Command Prompt and write command: redis-server
+C:\redis>redis-server
+ The server is now ready to accept connections on port 6379
+Setp 5:Open the folder redis(c:\redis) click on redis-cli.exe
+This release includes the redis-server.exe application that runs a Redis instance as a service on your windows machine,
+as well as redis-cli.exe which you can use to interact with any Redis instance.
+Step 6:127.0.0.1:6379> keys *
+"post_views"
+127.0.0.1:6379> HGETALl "post_views"
+1) "10"
+2) "3"
+post with id 10 ,three times seen on page
+**********
+Install:
+https://laraman.ir/blog/how-to-install-redis-on-windows
+https://hackthedeveloper.com/how-to-install-redis-on-windows-10/
+************
+pip install redis
+
+settings.py =>
+REDIS_HOST = 'localhost'
+REDIS_PORT = 6379
+REDIS_DB = 0
+
+#posts app
+---views.py
+import redis
+from django.conf import settings
+redis_con = redis.Redis(settings.REDIS_HOST, settings.REDIS_PORT, settings.REDIS_DB)
+class PostDetail(FormMixin,DetailView):
+        def get_context_data(self, *args, **kwargs):
+            context = super().get_context_data(*args, **kwargs)
+            slug = self.kwargs['slug']
+            redis_con.hsetnx('post_views', post.id, 0)
+            rviews = redis_con.hincrby('post_views', post.id)
+            context['rviews'] = rviews
+            return context
+
+--post_detail.html
+<p>{{ post.user }} | {{ post.created|date }} | {{ rviews }} views</p>

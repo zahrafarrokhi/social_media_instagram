@@ -1,0 +1,9 @@
+
+# test
+# kavenegar.com
+# pip install kavenegar
+# logged in successfully
+
+signup in kavenegar.com =>apikey
+model.py => Profile => phone field
+view.py=>phonelogin-verify

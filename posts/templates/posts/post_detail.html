@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block content %}
+<!-- <p class="card-header">{{ post.user }}</p>-->
+    <p>{{ post.user }} | {{ post.created|date }} | {{ rviews }} views</p>
+    <p>{{ post.body }}</p><hr/>
+<!-- like  & unlike -->
+{% if request.user.is_authenticated %}
+    <a href="{% url 'posts:post_like' post.id %}" class="mb-5 btn btn-primary {% if can_like %}disabled {% endif %} col-md-2">Like {{ post.likes_count }}</a>
+{% endif %}
+
+<!-- number of comment -->
+    {% with total=comments.count %}
+        <p>This post has {{ total }} comment{{ total|pluralize }}</p>
+    {% endwith %}
+<!-- delete & edit post in detail's post -->
+    {% if request.user.is_authenticated and request.user.id == post.user.id%}
+    <div class="row">
+         <form action="{% url 'posts:post_delete' post.user.id post.id %}" method="post">
+                {% csrf_token %}
+                <button class="btn btn-danger">Delete post</button>
+            </form>
+           <br>
+        <a class ="btn btn-secondary ml-2"href="{% url 'posts:post_edit' post.user.id post.id %}">Edit post</a>
+    </div>
+    {% endif %}
+        <!-- form AddCommentForm mixin in detail view -->
+    {% if request.user.is_authenticated %}
+    <form action="" method="post" novalidate class="col-md-6">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <input type="submit" value="Send" class="btn btn-primary">
+    </form>
+    {% else %}
+        <p>only logged in users can send comments</p>
+    {% endif %}<br/><br/><br/>
+<!--showing comments-->
+<!--    {% for comment in comments %}-->
+<!--			<div class="card bg-dark text-white">-->
+<!--				<p class="card-header">{{ comment.user }}</p>-->
+<!--				<p class="card-body">{{ comment.body }}</p>-->
+<!--            </div>-->
+<!--    {% empty %}-->
+<!--        <p>There is no comment</p>-->
+<!--    {% endfor %}-->
+<!--showing comment and replies-->
+{% for comment in comments %}
+		{% if not comment.reply %}
+			<div class="card bg-dark text-white">
+				<p class="card-header">{{ comment.user }}</p>
+				<p class="card-body">{{ comment.body }}</p>
+				<!-- showing form replies -->
+				{% if request.user.is_authenticated %}
+				<div class="card-body">
+					<form action="{% url 'posts:add_reply' post.id comment.id %}" method="post">
+						{% csrf_token %}
+						{{ reply.as_p }}
+						<input type="submit" value="Send">
+					</form>
+				</div>
+				{% else %}
+					<p>you have to login to send reply</p>
+				{% endif %}
+				<!-- showing replies -->
+                <!--backward relation(comment & reply) reply's related_name is rcomment-->
+				{% for reply in comment.rcomment.all %}
+					<p class="bg-primary text-white p-3 m-5">{{ reply.user }} <br/> {{ reply.body }}</p>
+				{% endfor %}
+			</div><br/>
+		{% endif %}
+    {% empty %}
+        <p>There is no comment</p>
+    {% endfor %}
+{% endblock %}

@@ -1,0 +1,40 @@
+app=>posts
+model=>comment
+
+point
+--related_name
+--self => reply = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='rcomment')
+
+** Comment above the post
+class Comment(models.Model):
+      post = models.ForeignKey('Post', on_delete=models.CASCADE, related_name='pcomment')
+
+** BackwardRelation
+Leave a comment in the admin panel(admin.py=>create comment)
+python manage.py shell
+from posts.models import Post,Comment
+c1=Comment.objects.first()
+c1
+<Comment: Comment good! by zahra >
+c1.post
+<Post: zahra - django>
+in model.py
+    class Meta:
+        ordering = ('-created',)
+#newest Comment
+Comment.objects.order_by('-created')
+****
+p1=Post.objects.last()
+*_set
+p1.comment_set.all() =>without related name
+_set(in MayToOne and ManyToMany)
+*related name
+p1.pcomment.all()  => with related name
+<QuerySet [<Comment: zahra - good!>]>
+***
+view(Detailview)
+# https://stackoverflow.com/questions/15497693/django-can-class-based-views-accept-two-forms-at-a-time
+# https://stackoverflow.com/questions/45659986/django-implementing-a-form-within-a-generic-detailview/45661979
+#learning
+https://djangocentral.com/creating-comments-system-with-django/
+

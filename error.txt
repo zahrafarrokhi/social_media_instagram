@@ -1,0 +1,2 @@
+IntegrityError at /user/register/
+UNIQUE constraint failed: auth_user.username
